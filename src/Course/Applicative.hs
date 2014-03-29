@@ -16,6 +16,7 @@ import Course.Apply
 import Course.Id
 import Course.List
 import Course.Optional
+import Course.Functor
 import qualified Prelude as P
 
 class Apply f => Applicative f where
@@ -32,41 +33,39 @@ class Apply f => Applicative f where
 --
 -- >>> (+1) <$> (1 :. 2 :. 3 :. Nil)
 -- [2,3,4]
-(<$>) ::
-  Applicative f =>
-  (a -> b)
-  -> f a
-  -> f b
-(<$>) =
-  error "todo"
+--
+-- unnecessary because map is already defined by functor
+--(<$>) ::
+--  Applicative f =>
+--  (a -> b)
+--  -> f a
+--  -> f b
+--(<$>) =
+--  error "todo"
 
 -- | Insert into Id.
 --
 -- prop> pure x == Id x
 instance Applicative Id where
-  pure =
-    error "todo"
+  pure a = Id a
 
 -- | Insert into a List.
 --
 -- prop> pure x == x :. Nil
 instance Applicative List where
-  pure =
-    error "todo"
+  pure a = a :. Nil
 
 -- | Insert into an Optional.
 --
 -- prop> pure x == Full x
 instance Applicative Optional where
-  pure =
-    error "todo"
+  pure a = Full a
 
 -- | Insert into a constant function.
 --
 -- prop> pure x y == x
 instance Applicative ((->) t) where
-  pure =
-    error "todo"
+  pure a = const a
 
 -- | Sequences a list of structures to a structure of list.
 --
@@ -88,8 +87,8 @@ sequence ::
   Applicative f =>
   List (f a)
   -> f (List a)
-sequence =
-  error "todo"
+sequence xs = foldRight (lift2 (:.)) (pure Nil) xs  
+
 
 -- | Replicate an effect a given number of times.
 --
@@ -112,8 +111,8 @@ replicateA ::
   Int
   -> f a
   -> f (List a)
-replicateA =
-  error "todo"
+replicateA n fa = sequence $ take n (produce id fa)
+
 
 -- | Filter a list with a predicate that produces an effect.
 --
@@ -136,8 +135,8 @@ filtering ::
   (a -> f Bool)
   -> List a
   -> f (List a)
-filtering =
-  error "todo"
+filtering p xs = let fp = \a b -> if b then a :. Nil else Nil
+                 in flatten <$> sequence (zipWith (lift2 fp) (pure <$> xs)  (p <$> xs))
 
 -----------------------
 -- SUPPORT LIBRARIES --

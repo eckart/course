@@ -206,7 +206,7 @@ lift4 f a b c d = f <$> a <*> b <*> c <*> d
   f b
   -> f a
   -> f b
-(<*) fb fa = lift2 (\b a -> b) fb fa
+(<*) fb fa = lift2 (\b _ -> b) fb fa
 
 -----------------------
 -- SUPPORT LIBRARIES --
