@@ -16,7 +16,6 @@ import Course.Apply
 import Course.Id
 import Course.List
 import Course.Optional
-import Course.Functor
 import qualified Prelude as P
 
 class Apply f => Applicative f where
@@ -35,13 +34,12 @@ class Apply f => Applicative f where
 -- [2,3,4]
 --
 -- unnecessary because map is already defined by functor
---(<$>) ::
---  Applicative f =>
---  (a -> b)
---  -> f a
---  -> f b
---(<$>) =
---  error "todo"
+(<$>) ::
+  Applicative f =>
+  (a -> b)
+  -> f a
+  -> f b
+(<$>) f fa = (pure f) <*> fa 
 
 -- | Insert into Id.
 --
