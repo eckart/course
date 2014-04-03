@@ -47,7 +47,7 @@ And b.txt, containing:
 And c.txt, containing:
   the contents of c
 
-$ runhaskell io.hs "files.txt"
+$ runhaskell Course/FileIO.hs "files.txt"
 ============ a.txt
 the contents of a
 
@@ -60,10 +60,15 @@ the contents of c
 -}
 
 -- /Tip:/ use @getArgs@ and @run@
+--  getArgs :: IO (List Chars)
+--  putStrLn :: Chars -> IO ()
 main ::
   IO ()
-main =
-  error "todo"
+main = do
+  args <- getArgs
+  case args of
+    Nil -> return()
+    a :. _ -> run a
 
 type FilePath =
   Chars
@@ -72,31 +77,39 @@ type FilePath =
 run ::
   Chars
   -> IO ()
-run =
-  error "todo"
+run path =
+  do
+    (_,c) <- getFile path
+    allFileContents <- getFiles $ lines c
+    printFiles allFileContents
+-- the same using bind directly:
+--  printFiles =<< (getFiles =<< (\(_,c) -> return (lines c)) =<< (getFile path))
 
 getFiles ::
   List FilePath
   -> IO (List (FilePath, Chars))
-getFiles =
-  error "todo"
+getFiles paths = sequence $ getFile <$> paths
 
 getFile ::
   FilePath
   -> IO (FilePath, Chars)
-getFile =
-  error "todo"
+getFile path = (\c -> (path, c)) <$> (readFile path) 
 
 printFiles ::
   List (FilePath, Chars)
   -> IO ()
-printFiles =
-  error "todo"
+printFiles xs = let pp = (\(p,c) -> printFile p c) <$> xs
+                in foldLeft ((=<<).const) (return()) pp 
 
 printFile ::
   FilePath
   -> Chars
   -> IO ()
-printFile =
-  error "todo"
+printFile path content = do
+  putStrLn $ "========================== "++path
+  putStrLn content
+ 
+
+
+
 
