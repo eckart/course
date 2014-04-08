@@ -35,29 +35,29 @@ newtype State s a =
 -- >>> runState ((+1) <$> pure 0) 0
 -- (1,0)
 instance Functor (State s) where
-  (<$>) =
-      error "todo"
+  (<$>) f st = State(\s -> let (a,s') = runState st s
+                           in (f a, s'))
+
 
 -- | Implement the `Apply` instance for `State s`.
 -- >>> runState (pure (+1) <*> pure 0) 0
 -- (1,0)
 instance Apply (State s) where
-  (<*>) =
-    error "todo"
+  (<*>) sf st = State(\s -> let (f,s') = runState sf s
+                            in runState (f <$> st) s')
 
 -- | Implement the `Applicative` instance for `State s`.
 -- >>> runState (pure 2) 0
 -- (2,0)
 instance Applicative (State s) where
-  pure =
-    error "todo"
+  pure a = State (\s -> (a,s))
 
 -- | Implement the `Bind` instance for `State s`.
 -- >>> runState ((const $ put 2) =<< put 1) 0
 -- ((),2)
 instance Bind (State s) where
-  (=<<) =
-    error "todo"
+  (=<<) f fa = State(\s -> let (a1,s1) = (runState fa s)
+                           in runState (f a1) s1)
 
 instance Monad (State s) where
 
@@ -68,8 +68,7 @@ exec ::
   State s a
   -> s
   -> s
-exec =
-  error "todo"
+exec st s = snd $ runState st s
 
 -- | Run the `State` seeded with `s` and retrieve the resulting value.
 --
@@ -78,8 +77,7 @@ eval ::
   State s a
   -> s
   -> a
-eval =
-  error "todo"
+eval st s = fst $ runState st s
 
 -- | A `State` where the state also distributes into the produced value.
 --
@@ -87,8 +85,8 @@ eval =
 -- (0,0)
 get ::
   State s s
-get =
-  error "todo"
+get = State(\s -> (s,s))
+
 
 -- | A `State` where the resulting state is seeded with the given value.
 --
@@ -97,8 +95,8 @@ get =
 put ::
   s
   -> State s ()
-put =
-  error "todo"
+put s = State(\_ -> ((),s))
+
 
 -- | Find the first element in a `List` that satisfies a given predicate.
 -- It is possible that no element is found, hence an `Optional` result.
@@ -119,8 +117,8 @@ findM ::
   (a -> f Bool)
   -> List a
   -> f (Optional a)
-findM =
-  error "todo"
+findM p Nil    = pure Empty 
+findM p (x :. xs) = (\b -> if b then return (Full x) else findM p xs) =<< (p x)
 
 -- | Find the first element in a `List` that repeats.
 -- It is possible that no element repeats, hence an `Optional` result.
@@ -133,8 +131,9 @@ firstRepeat ::
   Ord a =>
   List a
   -> Optional a
-firstRepeat =
-  error "todo"
+firstRepeat xs =
+  let p x = (\s -> (const $ pure (S.member x s)) =<< put (S.insert x s)) =<< get
+  in eval (findM p xs) S.empty
 
 -- | Remove all duplicate elements in a `List`.
 -- /Tip:/ Use `filtering` and `State` with a @Data.Set#Set@.
