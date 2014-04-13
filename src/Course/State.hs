@@ -145,12 +145,16 @@ distinct ::
   Ord a =>
   List a
   -> List a
-distinct =
-  error "todo"
+distinct xs =
+  let p x = (\s -> (const $ pure (not (S.member x s))) =<< put (S.insert x s)) =<< get
+  in eval (filtering p xs) S.empty
+
 
 -- | A happy number is a positive integer, where the sum of the square of its digits eventually reaches 1 after repetition.
 -- In contrast, a sad number (not a happy number) is where the sum of the square of its digits never reaches 1
 -- because it results in a recurring sequence.
+--
+-- I don't get this description - stupid thing.
 --
 -- /Tip:/ Use `findM` with `State` and `produce`.
 --
