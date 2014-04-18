@@ -39,13 +39,13 @@ instance Functor f => Functor (StateT s f) where
 -- [(4,0)]
 --
 -- >>> import qualified Prelude as P
--- >>> runStateT (StateT (\s -> Full ((+2), s P.++ [1])) <*> (StateT (\s -> Full (2, s P.++ [2])))) [0]
+ -- >>> runStateT (StateT (\s -> Full ((+2), s P.++ [1])) <*> (StateT (\s -> Full (2, s P.++ [2])))) [0]
 -- Full (4,[0,1,2])
 instance Bind f => Apply (StateT s f) where
-  (<*>) f st =  StateT (\s -> let g = runStateT st s
-                                  --ff = runStateT f s -- f (a -> b, s)
-                                  fa =(\(a',s') -> (\(f',s'') -> (f' a', s'')) <$> (runStateT f s')) 
-                              in fa =<< runStateT st s )
+  StateT f <*> StateT a =
+    --StateT (\s -> (\(g, t) -> (\(z, u) -> (g z, u)) <$> a t) =<< f s)
+    StateT ((\(g, t) -> first g <$> a t) <=< f)
+
 
 -- | Implement the `Applicative` instance for @StateT s f@ given a @Applicative f@.
 --
